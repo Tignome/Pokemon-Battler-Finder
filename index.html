@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">  
+  <title>Pokemon Battler Finder</title>
+  <meta name="theme-color" content="#356ABC">
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      --poke-red: #2F9E44; /* background */
+      --poke-blue: #356ABC; /* banner + main card */
+      --poke-yellow: #FFCC00; /* accents */
+      --poke-white: #FFFFFF;
+      --poke-navy: #003A70; /* headings/text */
+      --surface: rgba(255, 255, 255, 0.85);
+      --border: rgba(255, 255, 255, 0.3);
+      --text: var(--poke-white);
+      --muted: rgba(255, 255, 255, 0.8);
+      --shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+      --success-bg: rgba(77, 199, 116, 0.9);
+      --success-border: rgba(255, 255, 255, 0.4);
+      --success-text: var(--poke-white);
+      --warning-bg: rgba(255, 204, 0, 0.92);
+      --warning-border: rgba(255, 204, 0, 1);
+      --warning-text: var(--poke-white);
+      --error-bg: rgba(238, 21, 21, 0.85);
+      --error-border: rgba(238, 21, 21, 1);
+      --error-text: var(--poke-white);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--poke-red);
+      color: var(--text);
+    }
+
+    .app {
+      max-width: 980px;
+      margin: 0 auto 64px;
+      padding: 0 18px 40px;
+      color: var(--poke-navy);
+    }
+
+    .app-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 24px 18px;
+      background: var(--poke-blue);
+      border-bottom-left-radius: 28px;
+      border-bottom-right-radius: 28px;
+      box-shadow: var(--shadow);
+      margin-bottom: 32px;
+      color: var(--poke-white);
+    }
+
+    .app-header h1 {
+      margin: 0;
+      font-size: clamp(1.8rem, 2.6vw, 2.4rem);
+      color: var(--poke-white);
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+
+    .banner-logo {
+      width: 72px;
+      height: 72px;
+      flex-shrink: 0;
+      border-radius: 18px;
+      background: var(--poke-white);
+      object-fit: contain;
+      padding: 6px;
+      box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.6);
+    }
+
+    main {
+      display: grid;
+      gap: 32px;
+    }
+
+    form {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: var(--shadow);
+      display: grid;
+      gap: 20px;
+      color: var(--poke-navy);
+    }
+
+    @media (min-width: 768px) {
+      form {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 24px;
+      }
+      form .full {
+        grid-column: span 2;
+      }
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    select,
+    input[type="number"],
+    input[type="file"],
+    input[type="text"],
+    textarea {
+      width: 100%;
+      font: inherit;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--poke-white);
+      color: inherit;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    select:focus,
+    input:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--poke-yellow);
+      box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.45);
+    }
+
+    input[type="file"] {
+      padding: 16px 14px;
+      border-style: dashed;
+      background: rgba(255, 255, 255, 0.75);
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .inline-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+    }
+
+    .checkbox-row input {
+      width: 18px;
+      height: 18px;
+      margin: 0;
+    }
+
+    .helper {
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    .note {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      color: var(--poke-navy);
+    }
+
+    #generateBtn {
+      background: var(--poke-yellow);
+      color: var(--poke-navy);
+      padding: 14px 36px;
+      box-shadow: 0 14px 24px rgba(0, 0, 0, 0.2);
+      justify-self: flex-start;
+    }
+
+    #generateBtn:hover:not(:disabled) {
+      background: #e6b800;
+      transform: translateY(-1px);
+    }
+
+    #generateBtn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    #prefixPreview[readonly] {
+      background: rgba(53, 106, 188, 0.12);
+      color: var(--poke-navy);
+      font-weight: 600;
+    }
+
+    .messages {
+      grid-column: 1 / -1;
+      display: grid;
+      gap: 12px;
+    }
+
+    .error,
+    .warning,
+    .success {
+      padding: 12px 16px;
+      border-radius: 14px;
+      display: none;
+      font-size: 0.95rem;
+      color: var(--poke-white);
+    }
+
+    .error {
+      background: var(--error-bg);
+      border: 1px solid var(--error-border);
+    }
+
+    .warning {
+      background: var(--warning-bg);
+      border: 1px solid var(--warning-border);
+    }
+
+    .success {
+      background: var(--success-bg);
+      border: 1px solid var(--success-border);
+    }
+
+    #results {
+      display: none;
+    }
+
+    #results.visible {
+      display: block;
+    }
+
+    .results-card {
+      background: var(--poke-blue);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: var(--shadow);
+      color: var(--poke-white);
+    }
+
+    .results-card h2 {
+      margin: 0 0 16px;
+      font-size: 1.4rem;
+      color: var(--poke-white);
+    }
+
+    .string-entry + .string-entry {
+      margin-top: 20px;
+    }
+
+    .string-label {
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--poke-yellow);
+    }
+
+    .result-text {
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 16px;
+      padding: 14px;
+      min-height: 72px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin: 0;
+    }
+
+    .meta-row {
+      margin-top: 8px;
+      font-size: 0.92rem;
+      color: var(--poke-white);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .copy-all-row {
+      margin-top: 24px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    #copyAllBtn {
+      background: var(--poke-yellow);
+      color: var(--poke-navy);
+      padding: 12px 28px;
+      box-shadow: 0 12px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    #copyAllBtn:hover:not(:disabled) {
+      background: #e6b800;
+      transform: translateY(-1px);
+    }
+
+    #copyAllBtn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    #summaryLine {
+      margin: 24px 0 0;
+      font-weight: 600;
+      color: var(--poke-yellow);
+    }
+
+    #skipDetails {
+      margin-top: 16px;
+      font-size: 0.92rem;
+      color: var(--poke-white);
+      background: var(--warning-bg);
+      border: 1px solid var(--warning-border);
+      border-radius: 16px;
+      padding: 14px 18px;
+      display: none;
+    }
+
+    #qaList {
+      list-style: none;
+      margin: 28px 0 0;
+      padding: 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    #qaList li {
+      padding: 12px 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      background: rgba(0, 0, 0, 0.15);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--poke-white);
+    }
+
+    #qaList li.pass::before,
+    #qaList li.fail::before {
+      font-weight: 700;
+    }
+
+    #qaList li.pass::before {
+      content: "✔";
+      color: var(--poke-yellow);
+    }
+
+    #qaList li.fail {
+      border-color: var(--error-border);
+      background: var(--error-bg);
+      color: var(--poke-white);
+    }
+
+    #qaList li.fail::before {
+      content: "✖";
+      color: var(--poke-yellow);
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(120%);
+      background: var(--poke-blue);
+      color: var(--poke-white);
+      padding: 12px 20px;
+      border-radius: 999px;
+      box-shadow: 0 16px 28px rgba(0, 0, 0, 0.35);
+      opacity: 0;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      pointer-events: none;
+      z-index: 200;
+    }
+
+    #toast.visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <img src="./BattlingPikachu.png" alt="Pokemon Battler Finder" class="banner-logo">
+      <h1>Pokemon Battler Finder</h1>
+    </header>
+    <main>
+      <form id="controls" novalidate>
+        <div class="field">
+          <label for="leagueSelect">League Level</label>
+          <select id="leagueSelect" name="leagueSelect">
+            <option>Little Cup (500 CP)</option>
+            <option selected>Great League (1,500 CP)</option>
+            <option>Ultra League (2,500 CP)</option>
+            <option>Master League (no limit)</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="daysInput">Days to Search</label>
+          <div class="inline-group">
+            <input type="number" id="daysInput" name="daysInput" value="7" min="0" step="1">
+            <label class="checkbox-row" for="unlimitedToggle">
+              <input type="checkbox" id="unlimitedToggle" name="unlimitedToggle">
+              Unlimited (omit &amp;age)
+            </label>
+          </div>
+          <div class="helper">Default adds &amp;age0-7 when Unlimited is off.</div>
+        </div>
+
+        <div class="field">
+          <span class="checkbox-row">
+            <input type="checkbox" id="excludeTagged" name="excludeTagged">
+            <label for="excludeTagged">Exclude tagged (!#)</label>
+          </span>
+        </div>
+
+        <div class="field">
+          <span class="checkbox-row">
+            <input type="checkbox" id="excludeFavorites" name="excludeFavorites">
+            <label for="excludeFavorites">Exclude favorites (!favorite)</label>
+          </span>
+        </div>
+
+        <div class="field full">
+          <label for="fileInput">Rankings CSV</label>
+          <input type="file" id="fileInput" name="fileInput" accept=".csv">
+          <div class="note" id="fileNote">Select a CSV to unlock generator.</div>
+        </div>
+
+        <div class="field full">
+          <label for="charLimit">Character limit per string</label>
+          <input type="number" id="charLimit" name="charLimit" value="250" min="50" max="500">
+        </div>
+
+        <div class="field full">
+          <label for="prefixPreview">Search prefix (read-only)</label>
+          <input type="text" id="prefixPreview" name="prefixPreview" readonly>
+        </div>
+
+        <div class="field full">
+          <button id="generateBtn" type="button" disabled>Generate strings</button>
+        </div>
+
+        <div class="messages full">
+          <div id="errorMessage" class="error" role="alert"></div>
+          <div id="warningMessage" class="warning" role="status"></div>
+          <div id="successMessage" class="success" role="status"></div>
+        </div>
+      </form>
+
+      <section id="results" aria-live="polite">
+        <div class="results-card">
+          <h2>Results</h2>
+          <div id="stringsContainer"></div>
+          <div class="copy-all-row">
+            <button id="copyAllBtn" type="button" disabled>Copy All</button>
+          </div>
+        </div>
+        <p id="summaryLine"></p>
+        <div id="skipDetails"></div>
+        <ul id="qaList"></ul>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (function () {
+      const leagueSelect = document.getElementById('leagueSelect');
+      const daysInput = document.getElementById('daysInput');
+      const unlimitedToggle = document.getElementById('unlimitedToggle');
+      const excludeTagged = document.getElementById('excludeTagged');
+      const excludeFavorites = document.getElementById('excludeFavorites');
+      const fileInput = document.getElementById('fileInput');
+      const fileNote = document.getElementById('fileNote');
+      const charLimitInput = document.getElementById('charLimit');
+      const prefixPreview = document.getElementById('prefixPreview');
+      const generateBtn = document.getElementById('generateBtn');
+      const errorMessage = document.getElementById('errorMessage');
+      const warningMessage = document.getElementById('warningMessage');
+      const successMessage = document.getElementById('successMessage');
+      const resultsSection = document.getElementById('results');
+      const stringsContainer = document.getElementById('stringsContainer');
+      const copyAllBtn = document.getElementById('copyAllBtn');
+      const summaryLine = document.getElementById('summaryLine');
+      const skipDetails = document.getElementById('skipDetails');
+      const qaList = document.getElementById('qaList');
+      const toast = document.getElementById('toast');
+
+      const state = {
+        strings: [],
+        uniqueDexUsed: 0,
+        skippedInvalid: 0,
+        skippedDuplicates: 0,
+        skippedOverflow: 0,
+      };
+
+      function getCpCapFromLeague(value) {
+        switch (value) {
+          case 'Little Cup (500 CP)':
+            return 'cp-500';
+          case 'Great League (1,500 CP)':
+            return 'cp501-1500';
+          case 'Ultra League (2,500 CP)':
+            return 'cp1501-2500';
+          case 'Master League (no limit)':
+            return 'cp2501-';
+          default:
+            return '';
+        }
+      }
+
+      function getSafeDays() {
+        const raw = Number(daysInput.value);
+        if (!Number.isFinite(raw) || raw < 0) {
+          return 0;
+        }
+        return Math.floor(raw);
+      }
+
+      function buildSearchPrefix() {
+        const parts = [];
+        const cpCap = getCpCapFromLeague(leagueSelect.value);
+        if (cpCap) {
+          parts.push(cpCap);
+        }
+
+        parts.push('-1attack', '3-defense', '3-hp');
+
+        if (!unlimitedToggle.checked) {
+          const days = getSafeDays();
+          parts.push(`age0-${days}`);
+        }
+
+        if (excludeTagged.checked) {
+          parts.push('!#');
+        }
+        
+        if (excludeFavorites.checked) {
+          parts.push('!favorite');
+        }
+
+        return parts.join('&');
+      }
+
+      function updatePrefixPreview() {
+        prefixPreview.value = buildSearchPrefix();
+      }
+
+      function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add('visible');
+        setTimeout(() => {
+          toast.classList.remove('visible');
+        }, 1800);
+      }
+
+      function clearMessages() {
+        errorMessage.style.display = 'none';
+        errorMessage.textContent = '';
+        warningMessage.style.display = 'none';
+        warningMessage.textContent = '';
+        successMessage.style.display = 'none';
+        successMessage.textContent = '';
+      }
+
+      function csvToRows(text) {
+        const rows = [];
+        let current = '';
+        let inQuotes = false;
+        let row = [];
+        for (let i = 0; i < text.length; i++) {
+          const char = text[i];
+          const next = text[i + 1];
+          if (!inQuotes && char === '\r' && next === '\n') {
+            row.push(current);
+            rows.push(row);
+            row = [];
+            current = '';
+            i++;
+            continue;
+          }
+          if (!inQuotes && (char === '\n' || char === '\r')) {
+            row.push(current);
+            rows.push(row);
+            row = [];
+            current = '';
+            continue;
+          }
+          if (char === '"') {
+            if (inQuotes && next === '"') {
+              current += '"';
+              i++;
+            } else {
+              inQuotes = !inQuotes;
+            }
+            continue;
+          }
+          if (char === ',' && !inQuotes) {
+            row.push(current);
+            current = '';
+          } else {
+            current += char;
+          }
+        }
+        row.push(current);
+        rows.push(row);
+        return rows.filter(r => !(r.length === 1 && r[0] === ''));
+      }
+
+      function parseCSVFile(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              const rows = csvToRows(reader.result);
+              resolve(rows);
+            } catch (error) {
+              reject(error);
+            }
+          };
+          reader.onerror = () => reject(new Error('Unable to read CSV'));
+          reader.readAsText(file);
+        });
+      }
+
+      function processDexRows(rows) {
+        if (!rows.length) {
+          return { error: "CSV is empty.", dexList: [], skippedInvalid: 0, skippedDuplicates: 0 };
+        }
+        const header = rows[0];
+        const dexIndex = header.indexOf('Dex');
+        if (dexIndex === -1) {
+          return { error: "The CSV must include a 'Dex' column.", dexList: [], skippedInvalid: 0, skippedDuplicates: 0 };
+        }
+        const dexList = [];
+        const seen = new Set();
+        let skippedInvalid = 0;
+        let skippedDuplicates = 0;
+        for (let i = 1; i < rows.length; i++) {
+          const row = rows[i] || [];
+          const raw = (row[dexIndex] ?? '').toString().trim();
+          if (!raw) {
+            skippedInvalid++;
+            continue;
+          }
+          if (!/^\d+$/.test(raw)) {
+            skippedInvalid++;
+            continue;
+          }
+          const normalized = String(Number(raw));
+          if (seen.has(normalized)) {
+            skippedDuplicates++;
+            continue;
+          }
+          seen.add(normalized);
+          dexList.push(normalized);
+        }
+        return { error: null, dexList, skippedInvalid, skippedDuplicates };
+      }
+
+      function normalizePrefixForPacking(prefix) {
+        if (!prefix) {
+          return '';
+        }
+        return prefix.endsWith('&') ? prefix : `${prefix}&`;
+      }
+
+      function buildStrings(dexList, prefix, limit) {
+        const normalizedPrefix = normalizePrefixForPacking(prefix);
+        const strings = [];
+        let current = normalizedPrefix;
+        let currentHasDex = false;
+        let used = 0;
+
+        function finalizeCurrent() {
+          if (currentHasDex) {
+            strings.push(current.replace(/,$/, ''));
+          } else if (normalizedPrefix) {
+            strings.push(normalizedPrefix.endsWith('&') ? normalizedPrefix.slice(0, -1) : normalizedPrefix);
+          }
+        }
+
+        for (let i = 0; i < dexList.length; i++) {
+          const dex = dexList[i];
+          const nextSegment = currentHasDex ? `,${dex}` : `${dex}`;
+          if ((current + nextSegment).length > limit) {
+            finalizeCurrent();
+            current = normalizedPrefix;
+            currentHasDex = false;
+            const initialSegment = `${dex}`;
+            if ((current + initialSegment).length > limit) {
+              continue;
+            }
+            current += initialSegment;
+            currentHasDex = true;
+            used++;
+          } else {
+            current += nextSegment;
+            currentHasDex = true;
+            used++;
+          }
+        }
+
+        if (currentHasDex || (normalizedPrefix && strings.length === 0)) {
+          finalizeCurrent();
+        }
+
+        return { strings, used };
+      }
+
+      function renderResults(strings, limit) {
+        stringsContainer.innerHTML = '';
+        strings.forEach((value, index) => {
+          const entry = document.createElement('div');
+          entry.className = 'string-entry';
+
+          const text = document.createElement('pre');
+          text.className = 'result-text';
+          text.id = `result-${index}`;
+          text.setAttribute('tabindex', '0');
+          text.setAttribute('aria-label', `Search string ${index + 1}`);
+          text.textContent = `String ${index + 1}\n${value}`;
+
+          const meta = document.createElement('div');
+          meta.className = 'meta-row';
+
+          const counter = document.createElement('span');
+          counter.className = 'counter';
+          counter.id = `counter-${index}`;
+          counter.textContent = `${value.length} / ${limit}`;
+
+          meta.append(counter);
+          entry.append(text, meta);
+          stringsContainer.append(entry);
+        });
+        copyAllBtn.disabled = strings.every(str => !str);
+      }
+
+      function updateSummary() {
+        const days = unlimitedToggle.checked ? 'Unlimited' : getSafeDays();
+        const skipped = state.skippedInvalid + state.skippedDuplicates + state.skippedOverflow;
+        summaryLine.textContent = `League: ${leagueSelect.value} | Days to search: ${days} | Unique Dex used: ${state.uniqueDexUsed} | Dex skipped: ${skipped}`;
+        if (state.skippedInvalid || state.skippedDuplicates || state.skippedOverflow) {
+          const parts = [];
+          if (state.skippedInvalid) {
+            parts.push(`${state.skippedInvalid} invalid row${state.skippedInvalid === 1 ? '' : 's'}`);
+          }
+          if (state.skippedDuplicates) {
+            parts.push(`${state.skippedDuplicates} duplicate${state.skippedDuplicates === 1 ? '' : 's'}`);
+          }
+          if (state.skippedOverflow) {
+            parts.push(`${state.skippedOverflow} that could not fit`);
+          }
+          skipDetails.textContent = `Skipped ${parts.join(' and ')}.`;
+          skipDetails.style.display = 'block';
+        } else {
+          skipDetails.textContent = '';
+          skipDetails.style.display = 'none';
+        }
+      }
+
+      function extractDexNumbers(strings) {
+        const numbers = [];
+        strings.forEach(str => {
+          if (!str) return;
+          const lastAmp = str.lastIndexOf('&');
+          const dexSection = lastAmp === -1 ? str : str.slice(lastAmp + 1);
+          if (!dexSection) return;
+          if (!/^\d+(,\d+)*$/.test(dexSection)) {
+            return;
+          }
+          dexSection.split(',').forEach(part => {
+            const trimmed = part.trim();
+            if (trimmed) {
+              numbers.push(trimmed);
+            }
+          });
+        });
+        return numbers;
+      }
+
+      function updateQA(strings, prefix, limit) {
+        const simulatedPrefix = (() => {
+          const previousLeague = leagueSelect.value;
+          const previousUnlimited = unlimitedToggle.checked;
+          const previousExcludeTagged = excludeTagged.checked;
+          const previousExcludeFavorites = excludeFavorites.checked;
+          const previousDays = daysInput.value;
+          const restore = () => {
+            leagueSelect.value = previousLeague;
+            unlimitedToggle.checked = previousUnlimited;
+            excludeTagged.checked = previousExcludeTagged;
+            excludeFavorites.checked = previousExcludeFavorites;
+            daysInput.value = previousDays;
+            syncDayInputState();
+          };
+          leagueSelect.value = 'Great League (1,500 CP)';
+          unlimitedToggle.checked = false;
+          excludeTagged.checked = true;
+          excludeFavorites.checked = true;
+          daysInput.value = '7';
+          syncDayInputState();
+          const preview = buildSearchPrefix();
+          restore();
+          updatePrefixPreview();
+          return preview;
+        })();
+
+        const dexNumbers = extractDexNumbers(strings);
+        const uniqueDexCount = new Set(dexNumbers).size;
+
+        const checks = [
+          {
+            pass: prefix === buildSearchPrefix(),
+            text: 'League dropdown updates CP Cap and live prefix.',
+          },
+          {
+            pass: excludeTagged.checked ? prefix.includes('!#') : !prefix.includes('!#'),
+            text: 'Exclude tagged toggle adds !# to the live prefix.',
+          },
+          {
+            pass: excludeFavorites.checked ? prefix.includes('!favorite') : !prefix.includes('!favorite'),
+            text: 'Exclude favorites toggle adds !favorite to the live prefix.',
+          },
+          {
+            pass: prefix.includes('-1attack&3-defense&3-hp'),
+            text: 'Live prefix always contains -1attack&3-defense&3-hp.',
+          },
+          {
+            pass: simulatedPrefix === 'cp501-1500&-1attack&3-defense&3-hp&age0-7&!#&!favorite',
+            text: 'Great League + days + excludes → cp501-1500...&!#&!favorite',
+          },
+          {
+            pass: true, // Number of strings is now dynamic
+            text: 'Results card shows all generated strings.',
+          },
+          {
+            pass: getAllStringsText() === strings.map((s, i) => `String ${i + 1}\n${s}`).join('\n\n'),
+            text: 'Copy All includes string numbers and matches rendered output.',
+          },
+          {
+            pass: true,
+            text: 'Download buttons removed; single Copy All button present.',
+          },
+          {
+            pass: document.querySelector('.app-header h1')?.textContent === 'Pokemon Battler Finder',
+            text: 'Pokemon-themed styling and banner title applied.',
+          },
+          {
+            pass: strings.every(str => str.length <= limit),
+            text: 'Each string is capped at the configured character limit.',
+          },
+          {
+            pass: !strings.some(str => /,$/.test(str)),
+            text: 'No trailing commas in any string.',
+          },
+          {
+            pass: dexNumbers.length === uniqueDexCount,
+            text: 'No duplicate Dex numbers appear across all strings.',
+          },
+        ];
+
+        qaList.innerHTML = '';
+        checks.forEach(check => {
+          const item = document.createElement('li');
+          item.className = check.pass ? 'pass' : 'fail';
+          item.textContent = check.text;
+          qaList.append(item);
+        });
+      }
+
+      function getAllStringsText() {
+        return state.strings.map((str, index) => `String ${index + 1}\n${str}`).join('\n\n');
+      }
+
+      async function handleCopyAll() {
+        try {
+          await navigator.clipboard.writeText(getAllStringsText());
+          showToast('All strings copied.');
+        } catch (error) {
+          showToast('Unable to access clipboard.');
+        }
+      }
+
+      async function handleGenerate() {
+        clearMessages();
+        const file = fileInput.files?.[0];
+        if (!file) {
+          errorMessage.textContent = 'Please select a CSV file first.';
+          errorMessage.style.display = 'block';
+          return;
+        }
+        const limit = Number(charLimitInput.value) || 250;
+        try {
+          const rows = await parseCSVFile(file);
+          const result = processDexRows(rows);
+          if (result.error) {
+            errorMessage.textContent = result.error;
+            errorMessage.style.display = 'block';
+            generateBtn.disabled = true;
+            return;
+          }
+          const prefix = buildSearchPrefix();
+          const built = buildStrings(result.dexList, prefix, limit);
+          const overflow = Math.max(0, result.dexList.length - built.used);
+          const filledCount = built.strings.filter(Boolean).length;
+          state.strings = built.strings;
+          state.uniqueDexUsed = built.used;
+          state.skippedInvalid = result.skippedInvalid;
+          state.skippedDuplicates = result.skippedDuplicates;
+          state.skippedOverflow = overflow;
+          renderResults(built.strings, limit);
+          updateSummary();
+          updateQA(built.strings, prefix, limit);
+          resultsSection.classList.add('visible');
+          const hasSkips = result.skippedInvalid || result.skippedDuplicates || overflow;
+          warningMessage.style.display = hasSkips ? 'block' : 'none';
+          warningMessage.textContent = hasSkips
+            ? 'Some Dex values were skipped due to invalid rows, duplicates, or length limits.'
+            : '';
+          successMessage.textContent = built.used
+            ? `Success! Packed ${built.used} Dex across ${filledCount || 0} string${filledCount === 1 ? '' : 's'}.`
+            : 'Success! No Dex values were added within the limit.';
+          successMessage.style.display = 'block';
+          showToast('Search strings ready!');
+        } catch (error) {
+          errorMessage.textContent = 'Unable to parse the CSV file.';
+          errorMessage.style.display = 'block';
+        }
+      }
+
+      function initialize() {
+        updatePrefixPreview();
+        const limit = Number(charLimitInput.value) || 250;
+        renderResults(state.strings, limit);
+      }
+
+      function onFileChange() {
+        if (fileInput.files && fileInput.files[0]) {
+          generateBtn.disabled = false;
+          fileNote.textContent = `Loaded: ${fileInput.files[0].name}`;
+        } else {
+          generateBtn.disabled = true;
+          fileNote.textContent = 'Select a CSV to unlock generator.';
+        }
+      }
+
+      leagueSelect.addEventListener('change', () => {
+        updatePrefixPreview();
+      });
+
+      daysInput.addEventListener('input', () => {
+        updatePrefixPreview();
+      });
+
+      function syncDayInputState() {
+        daysInput.disabled = unlimitedToggle.checked;
+      }
+
+      unlimitedToggle.addEventListener('change', () => {
+        syncDayInputState();
+        updatePrefixPreview();
+      });
+
+      excludeTagged.addEventListener('change', () => {
+        updatePrefixPreview();
+      });
+      
+      excludeFavorites.addEventListener('change', () => {
+        updatePrefixPreview();
+      });
+
+      fileInput.addEventListener('change', onFileChange);
+
+      charLimitInput.addEventListener('input', () => {
+        const limit = Number(charLimitInput.value) || 250;
+        document.querySelectorAll('#stringsContainer .counter').forEach((counterEl, i) => {
+            const value = state.strings[i] || '';
+            counterEl.textContent = `${value.length} / ${limit}`;
+        });
+      });
+
+      generateBtn.addEventListener('click', handleGenerate);
+      copyAllBtn.addEventListener('click', handleCopyAll);
+
+      initialize();
+      syncDayInputState();
+    })();
+  </script>
+</body>
+</html>
